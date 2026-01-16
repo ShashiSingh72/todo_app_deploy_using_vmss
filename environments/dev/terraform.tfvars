@@ -236,3 +236,38 @@ appgtws = {
     }
   }
 }
+
+
+bastion_hosts = {
+  bastion1 = {
+    bastion_name        = "todo-BastionHost1"
+    location            = "west europe"
+    resource_group_name = "todo-rg-001"
+    vnet_name           = "todo-vnet-001"
+    allocation_method   = "Static"
+    sku                 = "Standard"
+    bastion_subnet_name = "AzureBastionSubnet"
+    address_prefixes    = ["10.0.3.0/24"]
+    ip_configuration = [
+      {
+        ip_configuration_name = "bastionIpConfig1"
+      }
+    ]
+    }}
+
+    
+key_vaults = {
+  kvdev001 = {
+    key_vault_name              = "todo-kv-001"
+    location                    = "west europe"
+    resource_group_name         = "todo-rg-001"
+    enabled_for_disk_encryption = true
+    soft_delete_retention_days  = 7
+    purge_protection_enabled    = false
+    sku_name                    = "standard"
+    tags = {
+      environment = "dev"
+      project     = "project1"
+    }
+  }
+}
