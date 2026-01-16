@@ -64,3 +64,16 @@ module "application_gateway" {
   appgtws = var.appgtws
 
 }
+module "azure_bastion" {
+  depends_on = [ module.rg, module.subnet, module.public_ip ]
+  source = "../../modules/azure_bastion"
+  bastion_hosts = var.bastion_hosts
+
+}
+
+module "key_voult" {
+  depends_on = [ module.rg ]
+  source = "../../modules/key_voult"
+  key_vaults = var.key_vaults
+
+}

@@ -186,3 +186,32 @@ variable "appgtws" {
   }))
 }
 
+variable "bastion_hosts" {
+  type = map(object({
+    bastion_name           = string
+    location               = string
+    resource_group_name    = string
+    vnet_name              = string
+    allocation_method      = string
+    sku                    = string
+    bastion_subnet_name    = string
+    address_prefixes = list(string)
+    ip_configuration       = list(object({
+      ip_configuration_name = string
+    }))
+  }))
+  }
+
+  variable "key_vaults" {
+  type = map(object({
+    key_vault_name             = string
+    location                   = string
+    resource_group_name        = string
+    enabled_for_disk_encryption = bool
+    soft_delete_retention_days  = number
+    purge_protection_enabled    = bool
+    sku_name                    = string
+    tags                        = optional(map(string))
+  }))
+
+} 
