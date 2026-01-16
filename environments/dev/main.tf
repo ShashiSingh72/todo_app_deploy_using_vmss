@@ -77,3 +77,17 @@ module "key_voult" {
   key_vaults = var.key_vaults
 
 }
+
+module "log_analytic_workspace" {
+  depends_on = [ module.rg ]
+  source = "../../modules/log_analytic_workspace"
+  workspaces = var.workspaces
+  
+}
+
+module "data_collection_rule" {
+  depends_on = [ module.rg, module.storage_account, module.log_analytic_workspace ]
+  source = "../../modules/azurerm_monitor_data_collection_rule"
+  data_collection_rules = var.data_collection_rules
+  
+}

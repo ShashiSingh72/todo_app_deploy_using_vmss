@@ -188,25 +188,25 @@ variable "appgtws" {
 
 variable "bastion_hosts" {
   type = map(object({
-    bastion_name           = string
-    location               = string
-    resource_group_name    = string
-    vnet_name              = string
-    allocation_method      = string
-    sku                    = string
-    bastion_subnet_name    = string
-    address_prefixes = list(string)
-    ip_configuration       = list(object({
+    bastion_name        = string
+    location            = string
+    resource_group_name = string
+    vnet_name           = string
+    allocation_method   = string
+    sku                 = string
+    bastion_subnet_name = string
+    address_prefixes    = list(string)
+    ip_configuration = list(object({
       ip_configuration_name = string
     }))
   }))
-  }
+}
 
-  variable "key_vaults" {
+variable "key_vaults" {
   type = map(object({
-    key_vault_name             = string
-    location                   = string
-    resource_group_name        = string
+    key_vault_name              = string
+    location                    = string
+    resource_group_name         = string
     enabled_for_disk_encryption = bool
     soft_delete_retention_days  = number
     purge_protection_enabled    = bool
@@ -214,4 +214,29 @@ variable "bastion_hosts" {
     tags                        = optional(map(string))
   }))
 
-} 
+}
+
+variable "workspaces" {
+  type = map(object({
+    workspaces_name     = string
+    location            = string
+    resource_group_name = string
+    sku                 = string
+    retention_in_days   = number
+    tags                = map(string)
+  }))
+
+}
+
+variable "data_collection_rules" {
+  type = map(object({
+    data_collection_rule_name                = string
+    resource_group_name                      = string
+    location                                 = string
+    storage_account_name                     = string
+    log_analytics_workspace_name             = string
+    virtual_machine_scale_set_name           = string
+    virtual_machine_scale_set_extension_name = string
+  }))
+
+}

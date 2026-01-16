@@ -36,7 +36,7 @@ subnets = {
       environment = "dev"
       project     = "project1"
     }
-}
+  }
   gtwsubnet = {
     subnet_name          = "todo-gtwsubnet-001"
     resource_group_name  = "todo-rg-001"
@@ -47,8 +47,8 @@ subnets = {
       environment = "dev"
       project     = "project1"
     }
+  }
 }
- }
 
 stgs = {
   stgdev001 = {
@@ -178,7 +178,7 @@ pips = {
       project = "todo"
     }
   }
-    "gtwpip" = {
+  "gtwpip" = {
     public_ip_name      = "todo-gtwpip-011"
     resource_group_name = "todo-rg-001"
     location            = "west europe"
@@ -253,9 +253,9 @@ bastion_hosts = {
         ip_configuration_name = "bastionIpConfig1"
       }
     ]
-    }}
+} }
 
-    
+
 key_vaults = {
   kvdev001 = {
     key_vault_name              = "todo-kv-001"
@@ -269,5 +269,33 @@ key_vaults = {
       environment = "dev"
       project     = "project1"
     }
+  }
+}
+
+
+workspaces = {
+  workspace1 = {
+    workspaces_name     = "log-analytics-workspace-1"
+    location            = "west europe"
+    resource_group_name = "todo-rg-001"
+    sku                 = "PerGB2018"
+    retention_in_days   = 30
+    tags = {
+      environment = "dev"
+      project     = "project-1"
+    }
+  }
+
+}
+
+data_collection_rules = {
+  "collection_rule1" = {
+    data_collection_rule_name                = "todo-dcr"
+    resource_group_name                      = "todo-rg-001"
+    location                                 = "west europe"
+    storage_account_name                     = "todostgdev363238921"
+    log_analytics_workspace_name             = "log-analytics-workspace-1"
+    virtual_machine_scale_set_name           = "todo-vmss-001"
+    virtual_machine_scale_set_extension_name = "todo-vmss-extention"
   }
 }
