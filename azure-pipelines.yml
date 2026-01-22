@@ -1,0 +1,176 @@
+trigger: none
+pool: TodoAgent
+
+variables:
+- name: WORK_DIR
+  value: $(System.DefaultWorkingDirectory)/environments
+
+- name: SVC_CONN
+  value: todo-rahul-svc
+
+
+
+parameters:
+  - name: environments
+    type: string
+    default: dev
+    values:
+      - dev
+      - test
+      - prod
+# ${{parameters.environments}}
+# '$(WORK_DIR)/${{parameters.environments}}'
+
+stages:
+  - stage: SCANNING_TOOLS
+    jobs:
+      - job: SCANNING_TOOLS
+        steps:
+        - task: CmdLine@2
+          displayName: TFLINT TOOL
+          continueOnError: true
+          inputs:
+            script: 'tflint --chdir=$(System.DefaultWorkingDirectory) --recursive -f junit > result.xml'
+
+        - task: PublishTestResults@2
+          displayName: TFLINT PUBLISH RESULT
+          inputs:
+            testResultsFormat: 'JUnit'
+            testResultsFiles: 'result.xml'
+
+        - task: CmdLine@2
+          displayName: CHECKOV TOOL
+          continueOnError: true
+          inputs:
+            script: 'checkov -d $(System.DefaultWorkingDirectory) -o junitxml > checkovresult.xml'
+
+        - task: PublishTestResults@2
+          displayName: CHECKOV TEST RESULT
+          inputs:
+            testResultsFormat: 'JUnit'
+            testResultsFiles: 'checkovresult.xml'
+
+        - task: CmdLine@2
+          displayName: TFSEC
+          inputs:
+            script: |
+              tfsec $(System.DefaultWorkingDirectory) -f junit -O tfsecresult.xml
+
+        - task: PublishTestResults@2
+          displayName: TFSEC RESULT
+          inputs:
+            testResultsFormat: 'JUnit'
+            testResultsFiles: 'tfsecresult.xml'
+
+        - task: CmdLine@2
+          displayName: TERRASCAN TOOL
+          continueOnError: true
+          inputs:
+            script: 'terrascan scan -o junit-xml > terraresult.xml'
+            workingDirectory: '$(System.DefaultWorkingDirectory)'
+
+        - task: PublishTestResults@2
+          displayName: TERRA RESULT
+          inputs:
+            testResultsFormat: 'JUnit'
+            testResultsFiles: 'terraresult.xml'
+
+  - stage: BUILD
+    jobs:
+      - job: BUILD
+        steps: 
+        - task: TerraformInstaller@1
+          displayName: TERRAFORM_INSTALL
+          inputs:
+            terraformVersion: 'latest'
+
+        - task: TerraformTask@5
+          displayName: TERRAFORM_INIT
+          inputs:
+            provider: 'azurerm'
+            command: 'init'
+            workingDirectory: '$(WORK_DIR)/${{parameters.environments}}'
+            backendServiceArm: '$(SVC_CONN)'
+            backendAzureRmStorageAccountName: 'todostorage110'
+            backendAzureRmContainerName: 'todocontainer'
+            backendAzureRmKey: 'terraform.tfstate'
+        - task: TerraformTask@5
+          displayName: TERRAFORM_VALIDATE
+          inputs:
+            provider: 'azurerm'
+            command: 'validate'
+
+  - stage: TERRAFORMPLAN
+    jobs:
+      - job: TERRAFORMPLAN
+        steps: 
+        - task: TerraformInstaller@1
+          displayName: TERRAFORM_INSTALL
+          inputs:
+            terraformVersion: 'latest'
+
+        - task: TerraformTask@5
+          displayName: TERRAFORM_INIT
+          inputs:
+            provider: 'azurerm'
+            command: 'init'
+            workingDirectory: '$(WORK_DIR)/${{parameters.environments}}'
+            backendServiceArm: '$(SVC_CONN)'
+            backendAzureRmStorageAccountName: 'todostorage110'
+            backendAzureRmContainerName: 'todocontainer'
+            backendAzureRmKey: 'terraform.tfstate'
+
+        - task: TerraformTask@5
+          displayName: TERRAFORM_PLAN
+          inputs:
+            provider: 'azurerm'
+            command: 'plan'
+            workingDirectory: '$(WORK_DIR)/${{parameters.environments}}'
+            environmentServiceNameAzureRM: '$(SVC_CONN)'
+
+        - task: PowerShell@2
+          inputs:
+            targetType: 'inline'
+            script: 'infracost breakdown --path  $(WORK_DIR)/${{parameters.environments}}'
+            workingDirectory: '$(WORK_DIR)/${{parameters.environments}}'
+
+  - stage: MANUAL_VALIDATION
+    jobs:
+      - job: MANUAL_VALIDATION
+        displayName: MANUAL_VALIDATION
+        pool: server
+        steps: 
+        - task: ManualValidation@1
+          displayName: MANUAL_VALIDATION
+          inputs:
+            notifyUsers: 'shashisingh223344@gmail.com'
+            approvers: 'shashisingh223344@gmail.com'
+            instructions: 'check and approve'
+
+  - stage: TERRAFORM_APPLY
+    jobs:
+      - job: TERRAFORM_APPLY
+        displayName: TERRAFORM_APPLY
+        steps: 
+        - task: TerraformInstaller@1
+          displayName: TERRAFORM_INSTALL
+          inputs:
+            terraformVersion: 'latest'
+
+        - task: TerraformTask@5
+          displayName: TERRAFORM_INIT
+          inputs:
+            provider: 'azurerm'
+            command: 'init'
+            workingDirectory: '$(WORK_DIR)/${{parameters.environments}}'
+            backendServiceArm: '$(SVC_CONN)'
+            backendAzureRmStorageAccountName: 'todostorage110'
+            backendAzureRmContainerName: 'todocontainer'
+            backendAzureRmKey: 'terraform.tfstate'
+
+        - task: TerraformTask@5
+          inputs:
+            provider: 'azurerm'
+            command: 'apply'
+            workingDirectory: '$(WORK_DIR)/${{parameters.environments}}'
+            environmentServiceNameAzureRM: 'todo-service-connection'
